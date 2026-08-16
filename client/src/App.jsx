@@ -3,8 +3,10 @@ import {
   Home, Building2, FileText, Cpu, Bell, DollarSign, Wrench,
   Shield, BarChart3, Clock, Settings, HelpCircle, Menu, Search,
   Plus, ArrowUpRight, ChevronDown, ChevronRight, MapPin, Maximize2,
-  Upload, Star, TrendingUp, AlertCircle, CheckCircle2, RefreshCw
+  Upload, Star, TrendingUp, AlertCircle, CheckCircle2, LogOut, UserCheck
 } from 'lucide-react';
+import Login from './pages/Auth/Login';
+import Register from './pages/Auth/Register';
 
 // ─── Data ──────────────────────────────────────────────────────────────────
 const NAV_ITEMS = [
@@ -83,7 +85,7 @@ function Logo() {
   );
 }
 
-function Sidebar({ active, setActive }) {
+function Sidebar({ active, setActive, onLogout }) {
   return (
     <aside className="sidebar flex flex-col py-4 gap-1">
       {/* Logo */}
@@ -131,7 +133,7 @@ function Sidebar({ active, setActive }) {
   );
 }
 
-function Topbar() {
+function Topbar({ currentView, setView }) {
   return (
     <header className="topbar">
       {/* Hamburger (mobile) */}
@@ -139,16 +141,37 @@ function Topbar() {
         <Menu size={20} />
       </button>
 
+      {/* View Switcher Badge Pills (For demonstration of design screens) */}
+      <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-lg border border-gray-200">
+        <button
+          onClick={() => setView('dashboard')}
+          className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-all ${currentView === 'dashboard' ? 'bg-white text-primary shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
+        >
+          Dashboard View
+        </button>
+        <button
+          onClick={() => setView('login')}
+          className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-all ${currentView === 'login' ? 'bg-white text-primary shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
+        >
+          Login Screen
+        </button>
+        <button
+          onClick={() => setView('register')}
+          className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-all ${currentView === 'register' ? 'bg-white text-primary shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
+        >
+          Register Screen
+        </button>
+      </div>
+
       {/* Search */}
-      <div className="flex-1 flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 max-w-md">
+      <div className="flex-1 flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 max-w-xs ml-2 hidden md:flex">
         <Search size={14} className="text-gray-400" />
         <input
           id="topbar-search"
           type="text"
-          placeholder="Search properties, documents, reminders..."
-          className="flex-1 bg-transparent text-sm outline-none text-gray-600 placeholder-gray-400"
+          placeholder="Search properties..."
+          className="flex-1 bg-transparent text-xs outline-none text-gray-600 placeholder-gray-400"
         />
-        <span className="text-[10px] text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded hidden sm:inline">Ctrl K</span>
       </div>
 
       <div className="ml-auto flex items-center gap-3">
@@ -157,11 +180,8 @@ function Topbar() {
           <Bell size={19} />
           <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-[9px] rounded-full flex items-center justify-center font-bold">3</span>
         </button>
-        {/* Help */}
-        <button id="help-btn" className="text-gray-500 hover:text-gray-800 p-1">
-          <HelpCircle size={19} />
-        </button>
-        {/* Avatar */}
+        
+        {/* Avatar / Profile */}
         <div id="user-avatar" className="flex items-center gap-2 cursor-pointer group">
           <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-xs font-bold select-none">
             RG
@@ -170,7 +190,6 @@ function Topbar() {
             <p className="text-xs font-semibold text-gray-800 leading-tight">Rushi Gujarathi</p>
             <p className="text-[10px] text-gray-400">Owner</p>
           </div>
-          <ChevronDown size={13} className="text-gray-400 group-hover:text-gray-600" />
         </div>
       </div>
     </header>
@@ -213,7 +232,6 @@ function HeroBanner() {
           </button>
         </div>
       </div>
-      {/* Decorative shape */}
       <div className="absolute right-4 bottom-0 w-36 h-36 opacity-20 pointer-events-none select-none" aria-hidden>
         <Building2 size={144} className="text-primary" strokeWidth={0.5} />
       </div>
@@ -307,7 +325,6 @@ function DocVault() {
           );
         })}
       </div>
-      {/* Storage */}
       <div className="mb-3">
         <div className="flex justify-between text-[10px] text-gray-400 mb-1">
           <span>Storage Used</span>
@@ -353,23 +370,18 @@ function AIInsightsRow() {
 function DashboardPage() {
   return (
     <div className="page-content space-y-4">
-      {/* Welcome */}
       <div>
         <h2 className="text-lg font-bold text-gray-900">Welcome back, Rushi! 👋</h2>
         <p className="text-xs text-gray-400">Here's what's happening with your properties today.</p>
       </div>
 
-      {/* Top Grid: Hero + 6 Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-        {/* Hero */}
         <HeroBanner />
-        {/* Stats */}
         {STATS.map((s) => (
           <StatCard key={s.label} stat={s} />
         ))}
       </div>
 
-      {/* AI Powered Features */}
       <div>
         <p className="section-title mb-2">AI Powered Features</p>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
@@ -379,9 +391,7 @@ function DashboardPage() {
         </div>
       </div>
 
-      {/* Bottom Grid: Properties | Reminders | Document Vault */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-        {/* My Properties */}
         <div className="card">
           <div className="section-header">
             <span className="section-title">My Properties</span>
@@ -393,7 +403,6 @@ function DashboardPage() {
           </button>
         </div>
 
-        {/* Upcoming Reminders */}
         <div className="card">
           <div className="section-header">
             <span className="section-title">Upcoming Reminders</span>
@@ -405,17 +414,14 @@ function DashboardPage() {
           </button>
         </div>
 
-        {/* Document Vault */}
         <DocVault />
       </div>
 
-      {/* AI Insights */}
       <AIInsightsRow />
     </div>
   );
 }
 
-// ─── Placeholder page for non-dashboard routes ──────────────────────────────
 function PlaceholderPage({ label }) {
   return (
     <div className="page-content flex flex-col items-center justify-center gap-4 opacity-60">
@@ -430,17 +436,63 @@ function PlaceholderPage({ label }) {
 
 // ─── App Root ────────────────────────────────────────────────────────────────
 export default function App() {
-  const [active, setActive] = useState('dashboard');
-  const activeNav = NAV_ITEMS.find((n) => n.id === active);
+  const [currentView, setCurrentView] = useState('dashboard'); // 'dashboard' | 'login' | 'register'
+  const [activeNav, setActiveNav] = useState('dashboard');
+
+  if (currentView === 'login') {
+    return (
+      <div>
+        <div className="bg-gray-800 text-white px-4 py-2 text-xs flex items-center justify-between">
+          <span className="font-semibold">AssetNest Design Preview: Login Screen</span>
+          <div className="flex items-center gap-2">
+            <button onClick={() => setCurrentView('register')} className="bg-gray-700 hover:bg-gray-600 px-2.5 py-1 rounded">
+              Switch to Register
+            </button>
+            <button onClick={() => setCurrentView('dashboard')} className="bg-primary hover:bg-primary-dark px-2.5 py-1 rounded">
+              Go to Dashboard
+            </button>
+          </div>
+        </div>
+        <Login
+          onNavigateToRegister={() => setCurrentView('register')}
+          onLoginSuccess={() => setCurrentView('dashboard')}
+        />
+      </div>
+    );
+  }
+
+  if (currentView === 'register') {
+    return (
+      <div>
+        <div className="bg-gray-800 text-white px-4 py-2 text-xs flex items-center justify-between">
+          <span className="font-semibold">AssetNest Design Preview: Register Screen</span>
+          <div className="flex items-center gap-2">
+            <button onClick={() => setCurrentView('login')} className="bg-gray-700 hover:bg-gray-600 px-2.5 py-1 rounded">
+              Switch to Login
+            </button>
+            <button onClick={() => setCurrentView('dashboard')} className="bg-primary hover:bg-primary-dark px-2.5 py-1 rounded">
+              Go to Dashboard
+            </button>
+          </div>
+        </div>
+        <Register
+          onNavigateToLogin={() => setCurrentView('login')}
+          onRegisterSuccess={() => setCurrentView('dashboard')}
+        />
+      </div>
+    );
+  }
+
+  const navObj = NAV_ITEMS.find((n) => n.id === activeNav);
 
   return (
     <div className="app-layout">
-      <Sidebar active={active} setActive={setActive} />
+      <Sidebar active={activeNav} setActive={setActiveNav} />
       <div className="main-content">
-        <Topbar />
-        {active === 'dashboard'
+        <Topbar currentView={currentView} setView={setCurrentView} />
+        {activeNav === 'dashboard'
           ? <DashboardPage />
-          : <PlaceholderPage label={activeNav?.label ?? active} />
+          : <PlaceholderPage label={navObj?.label ?? activeNav} />
         }
       </div>
     </div>
