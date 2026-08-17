@@ -1,4 +1,12 @@
 const mongoose = require('mongoose');
+const dns = require('dns');
+
+// Fallback to public DNS servers if local router refuses SRV queries on Windows
+try {
+  dns.setServers(['8.8.8.8', '1.1.1.1']);
+} catch (e) {
+  // Ignore if DNS override is restricted
+}
 
 /**
  * Connect to MongoDB Atlas / Local MongoDB instance
