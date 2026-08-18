@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Home, Building2, FileText, Cpu, Bell, DollarSign, Wrench,
   Shield, BarChart3, Clock, Settings, HelpCircle, Menu, Search,
@@ -133,35 +133,13 @@ function Sidebar({ active, setActive, onLogout }) {
   );
 }
 
-function Topbar({ currentView, setView }) {
+function Topbar({ user, onLogout }) {
   return (
     <header className="topbar">
       {/* Hamburger (mobile) */}
       <button id="topbar-menu-btn" className="text-gray-500 hover:text-gray-800 p-1">
         <Menu size={20} />
       </button>
-
-      {/* View Switcher Badge Pills (For demonstration of design screens) */}
-      <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-lg border border-gray-200">
-        <button
-          onClick={() => setView('dashboard')}
-          className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-all ${currentView === 'dashboard' ? 'bg-white text-primary shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
-        >
-          Dashboard View
-        </button>
-        <button
-          onClick={() => setView('login')}
-          className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-all ${currentView === 'login' ? 'bg-white text-primary shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
-        >
-          Login Screen
-        </button>
-        <button
-          onClick={() => setView('register')}
-          className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-all ${currentView === 'register' ? 'bg-white text-primary shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
-        >
-          Register Screen
-        </button>
-      </div>
 
       {/* Search */}
       <div className="flex-1 flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 max-w-xs ml-2 hidden md:flex">
@@ -182,14 +160,17 @@ function Topbar({ currentView, setView }) {
         </button>
         
         {/* Avatar / Profile */}
-        <div id="user-avatar" className="flex items-center gap-2 cursor-pointer group">
+        <div id="user-avatar" className="flex items-center gap-2 cursor-pointer group relative">
           <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-xs font-bold select-none">
-            RG
+            {user?.name?.charAt(0)?.toUpperCase() || 'U'}
           </div>
           <div className="hidden sm:block">
-            <p className="text-xs font-semibold text-gray-800 leading-tight">Rushi Gujarathi</p>
+            <p className="text-xs font-semibold text-gray-800 leading-tight">{user?.name || 'User'}</p>
             <p className="text-[10px] text-gray-400">Owner</p>
           </div>
+          <button onClick={onLogout} className="ml-2 text-gray-500 hover:text-red-500 transition-colors" title="Logout">
+            <LogOut size={16} />
+          </button>
         </div>
       </div>
     </header>
@@ -367,11 +348,11 @@ function AIInsightsRow() {
 }
 
 // ─── Main Dashboard Page ─────────────────────────────────────────────────────
-function DashboardPage() {
+function DashboardPage({ user }) {
   return (
     <div className="page-content space-y-4">
       <div>
-        <h2 className="text-lg font-bold text-gray-900">Welcome back, Rushi! 👋</h2>
+        <h2 className="text-lg font-bold text-gray-900">Welcome back, {user?.name?.split(' ')[0] || 'User'}! 👋</h2>
         <p className="text-xs text-gray-400">Here's what's happening with your properties today.</p>
       </div>
 
@@ -436,62 +417,71 @@ function PlaceholderPage({ label }) {
 
 // ─── App Root ────────────────────────────────────────────────────────────────
 export default function App() {
-  const [currentView, setCurrentView] = useState('dashboard'); // 'dashboard' | 'login' | 'register'
+  const [currentView, setCurrentView] = useState('login'); // 'login' | 'register'
   const [activeNav, setActiveNav] = useState('dashboard');
+  const [user, setUser] = useState(null);
+  const [loadingAuth, setLoadingAuth] = useState(true);
 
-  if (currentView === 'login') {
-    return (
-      <div>
-        <div className="bg-gray-800 text-white px-4 py-2 text-xs flex items-center justify-between">
-          <span className="font-semibold">AssetNest Design Preview: Login Screen</span>
-          <div className="flex items-center gap-2">
-            <button onClick={() => setCurrentView('register')} className="bg-gray-700 hover:bg-gray-600 px-2.5 py-1 rounded">
-              Switch to Register
-            </button>
-            <button onClick={() => setCurrentView('dashboard')} className="bg-primary hover:bg-primary-dark px-2.5 py-1 rounded">
-              Go to Dashboard
-            </button>
-          </div>
-        </div>
-        <Login
-          onNavigateToRegister={() => setCurrentView('register')}
-          onLoginSuccess={() => setCurrentView('dashboard')}
-        />
-      </div>
-    );
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await fetch('http://localhost:5000/api/auth/me', { credentials: 'include' });
+        const data = await res.json();
+        if (data.success) {
+          setUser(data.user);
+        }
+      } catch (err) {
+        console.error('Failed to fetch user', err);
+      } finally {
+        setLoadingAuth(false);
+      }
+    };
+    fetchUser();
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await fetch('http://localhost:5000/api/auth/logout', { method: 'POST', credentials: 'include' });
+      setUser(null);
+      setCurrentView('login');
+    } catch (err) {
+      console.error('Logout error', err);
+    }
+  };
+
+  if (loadingAuth) {
+    return <div className="min-h-screen flex items-center justify-center bg-gray-50 text-gray-500">Loading...</div>;
   }
 
-  if (currentView === 'register') {
-    return (
-      <div>
-        <div className="bg-gray-800 text-white px-4 py-2 text-xs flex items-center justify-between">
-          <span className="font-semibold">AssetNest Design Preview: Register Screen</span>
-          <div className="flex items-center gap-2">
-            <button onClick={() => setCurrentView('login')} className="bg-gray-700 hover:bg-gray-600 px-2.5 py-1 rounded">
-              Switch to Login
-            </button>
-            <button onClick={() => setCurrentView('dashboard')} className="bg-primary hover:bg-primary-dark px-2.5 py-1 rounded">
-              Go to Dashboard
-            </button>
-          </div>
-        </div>
+  if (!user) {
+    if (currentView === 'login') {
+      return (
+        <Login
+          onNavigateToRegister={() => setCurrentView('register')}
+          onLoginSuccess={(userData) => setUser(userData)}
+        />
+      );
+    }
+
+    if (currentView === 'register') {
+      return (
         <Register
           onNavigateToLogin={() => setCurrentView('login')}
-          onRegisterSuccess={() => setCurrentView('dashboard')}
+          onRegisterSuccess={(userData) => setUser(userData)}
         />
-      </div>
-    );
+      );
+    }
   }
 
   const navObj = NAV_ITEMS.find((n) => n.id === activeNav);
 
   return (
     <div className="app-layout">
-      <Sidebar active={activeNav} setActive={setActiveNav} />
+      <Sidebar active={activeNav} setActive={setActiveNav} onLogout={handleLogout} />
       <div className="main-content">
-        <Topbar currentView={currentView} setView={setCurrentView} />
+        <Topbar user={user} onLogout={handleLogout} />
         {activeNav === 'dashboard'
-          ? <DashboardPage />
+          ? <DashboardPage user={user} />
           : <PlaceholderPage label={navObj?.label ?? activeNav} />
         }
       </div>
