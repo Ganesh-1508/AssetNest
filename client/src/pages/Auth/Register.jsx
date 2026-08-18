@@ -23,9 +23,39 @@ export default function Register({ onNavigateToLogin, onRegisterSuccess }) {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onRegisterSuccess();
+    if (formData.password !== formData.confirmPassword) {
+      return setError('Passwords do not match');
+    }
+    setError(null);
+    setLoading(true);
+    try {
+      const res = await fetch('http://localhost:5000/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.fullName,
+          email: formData.email,
+          phone: formData.phone,
+          password: formData.password,
+        }),
+        credentials: 'include',
+      });
+      const data = await res.json();
+      if (!data.success) {
+        setError(data.message || 'Registration failed');
+      } else {
+        onRegisterSuccess(data.user);
+      }
+    } catch (err) {
+      setError('An error occurred. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -37,6 +67,11 @@ export default function Register({ onNavigateToLogin, onRegisterSuccess }) {
           <div className="max-w-sm mx-auto w-full">
             <h2 className="text-xl font-bold text-gray-900 mb-1">Create Your Account</h2>
             <p className="text-xs text-gray-500 mb-5">Get started with AssetNest today</p>
+            {error && (
+              <div className="bg-red-50 text-red-600 p-3 rounded-lg text-xs mb-4">
+                {error}
+              </div>
+            )}
 
             <form onSubmit={handleSubmit} className="space-y-3">
               <div>
@@ -130,9 +165,10 @@ export default function Register({ onNavigateToLogin, onRegisterSuccess }) {
 
               <button
                 type="submit"
-                className="w-full bg-primary hover:bg-primary-dark text-white font-semibold py-2.5 rounded-lg text-xs transition-all shadow-sm flex items-center justify-center gap-1.5 mt-2"
+                disabled={loading}
+                className="w-full bg-primary hover:bg-primary-dark text-white font-semibold py-2.5 rounded-lg text-xs transition-all shadow-sm flex items-center justify-center gap-1.5 mt-2 disabled:opacity-70 disabled:cursor-not-allowed"
               >
-                <span>Create Account</span>
+                <span>{loading ? 'Creating Account...' : 'Create Account'}</span>
               </button>
             </form>
 

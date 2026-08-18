@@ -3,8 +3,10 @@ const cors = require('cors');
 const morgan = require('morgan');
 
 const healthRouter = require('./routes/health');
+const authRouter = require('./routes/auth');
 const notFound    = require('./middleware/notFound');
 const errorHandler = require('./middleware/errorHandler');
+const cookieParser = require('cookie-parser');
 
 const app = express();
 
@@ -15,6 +17,7 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 // ─── Logging (only in non-test environments) ─────────────────────────────────
 if (process.env.NODE_ENV !== 'test') {
@@ -23,6 +26,7 @@ if (process.env.NODE_ENV !== 'test') {
 
 // ─── Routes ──────────────────────────────────────────────────────────────────
 app.use('/api/health', healthRouter);
+app.use('/api/auth', authRouter);
 
 // ─── Error Handling ──────────────────────────────────────────────────────────
 app.use(notFound);
