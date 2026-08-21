@@ -4,6 +4,7 @@ const morgan = require('morgan');
 
 const healthRouter = require('./routes/health');
 const authRouter = require('./routes/auth');
+const propertyRouter = require('./routes/property');
 const notFound    = require('./middleware/notFound');
 const errorHandler = require('./middleware/errorHandler');
 const cookieParser = require('cookie-parser');
@@ -27,6 +28,7 @@ if (process.env.NODE_ENV !== 'test') {
 // ─── Routes ──────────────────────────────────────────────────────────────────
 app.use('/api/health', healthRouter);
 app.use('/api/auth', authRouter);
+app.use('/api/properties', propertyRouter);
 
 // ─── Error Handling ──────────────────────────────────────────────────────────
 app.use(notFound);
